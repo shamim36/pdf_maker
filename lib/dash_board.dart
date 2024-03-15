@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf_maker1/drawer_menu.dart';
 import 'package:pdf_maker1/mobile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,6 +35,8 @@ class _DashBoardState extends State<DashBoard> {
   static String? marksImg;
   static String? pdfName;
 
+  static bool _creatingPdfFile = false;
+
   static bool isHintVisible = false;
 
   bool isGeneratingPDF = false;
@@ -42,6 +45,24 @@ class _DashBoardState extends State<DashBoard> {
   void initState() {
     super.initState();
     _loadSavedData();
+  }
+
+  DateTime? selectedDate;
+
+  Future<void> _selectDate() async {
+    DateTime? _picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (_picked != null) {
+      String formattedDate = DateFormat('dd-MM-yyyy').format(_picked);
+      setState(() {
+        dateTEController.text = formattedDate;
+      });
+    }
   }
 
   @override
@@ -78,7 +99,6 @@ class _DashBoardState extends State<DashBoard> {
           prefs.getString('teacherDepartment') ?? '';
       teacherDesignationTEController.text =
           prefs.getString('teacherDesignation') ?? '';
-      dateTEController.text = prefs.getString('submissionDate') ?? '';
     });
   }
 
@@ -96,7 +116,6 @@ class _DashBoardState extends State<DashBoard> {
     prefs.setString('teacherName', teacherNameTEController.text);
     prefs.setString('teacherDepartment', teacherDepartmentTEController.text);
     prefs.setString('teacherDesignation', teacherDesignationTEController.text);
-    prefs.setString('submissionDate', dateTEController.text);
   }
 
   FutureBuilder<void> textFildForm() {
@@ -110,6 +129,7 @@ class _DashBoardState extends State<DashBoard> {
                 padding: const EdgeInsets.all(24),
                 child: Center(
                   child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
                     child: Form(
                       key: formKey,
                       child: Column(
@@ -148,9 +168,35 @@ class _DashBoardState extends State<DashBoard> {
                           const SizedBox(
                             height: 16,
                           ),
-                          textFormField(
-                            'Semester',
-                            semesterTEController,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Flexible(
+                                flex: 1,
+                                child: textFormField(
+                                  'Semester',
+                                  semesterTEController,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 16,
+                              ),
+                              Flexible(
+                                child: textFormField(
+                                  'Batch',
+                                  batchTEController,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 16,
+                              ),
+                              Flexible(
+                                child: textFormField(
+                                  'Section',
+                                  sectionTEController,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(
                             height: 16,
@@ -169,58 +215,87 @@ class _DashBoardState extends State<DashBoard> {
                           const SizedBox(
                             height: 16,
                           ),
-                          textFormField(
-                            'Batch',
-                            batchTEController,
+                          Row(
+                            children: [
+                              Flexible(
+                                flex: 2,
+                                child: textFormField(
+                                  'Course Name',
+                                  courseNameTEController,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 16,
+                              ),
+                              Flexible(
+                                flex: 1,
+                                child: textFormField(
+                                  'Code',
+                                  courseCodeTEController,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(
                             height: 16,
                           ),
-                          textFormField(
-                            'Section',
-                            sectionTEController,
+                          Row(
+                            children: [
+                              Flexible(
+                                flex: 2,
+                                child: textFormField(
+                                  'Teacher Name',
+                                  teacherNameTEController,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 16,
+                              ),
+                              Flexible(
+                                flex: 1,
+                                child: textFormField(
+                                  'Designation',
+                                  teacherDesignationTEController,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(
                             height: 16,
                           ),
-                          textFormField(
-                            'Course Code',
-                            courseCodeTEController,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          textFormField(
-                            'Course Name',
-                            courseNameTEController,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          textFormField(
-                            'Course Teacher Name',
-                            teacherNameTEController,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          textFormField(
-                            'Course Teacher Designation',
-                            teacherDesignationTEController,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          textFormField(
-                            'Course Teacher Department',
-                            teacherDepartmentTEController,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          textFormField(
-                            'Submission Date',
-                            dateTEController,
+                          Row(
+                            children: [
+                              Flexible(
+                                flex: 2,
+                                child: textFormField(
+                                  'Teacher Department',
+                                  teacherDepartmentTEController,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 16,
+                              ),
+                              Flexible(
+                                flex: 1,
+                                child: TextField(
+                                  controller: dateTEController,
+                                  decoration: const InputDecoration(
+                                    label: Text('Date'),
+                                    filled: true,
+                                    fillColor: Colors.transparent,
+                                    prefix: Icon(Icons.calendar_month),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.green),
+                                    ),
+                                  ),
+                                  readOnly: true,
+                                  onTap: () {
+                                    _selectDate();
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(
                             height: 16,
@@ -236,7 +311,8 @@ class _DashBoardState extends State<DashBoard> {
                                   const Color.fromARGB(255, 0, 0, 0),
                                 ),
                               ),
-                              onPressed: isGeneratingPDF ? null : _PdfNameDialog,
+                              onPressed:
+                                  isGeneratingPDF ? null : _PdfNameDialog,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -292,7 +368,9 @@ class _DashBoardState extends State<DashBoard> {
   InputDecoration textFieldDecoration(String name, bool isHintVisible) {
     return InputDecoration(
       border: const OutlineInputBorder(),
-      focusedBorder: const OutlineInputBorder(),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.green),
+      ),
       hintText: isHintVisible ? name : '',
       hintStyle: const TextStyle(color: Color.fromARGB(255, 27, 29, 27)),
       labelText: name,
@@ -326,7 +404,6 @@ class _DashBoardState extends State<DashBoard> {
     );
   }
 
-
   Future<void> _PdfNameDialog() async {
     showDialog(
       context: context,
@@ -335,21 +412,30 @@ class _DashBoardState extends State<DashBoard> {
           title: const Text('Enter PDF File Name'),
           content: TextField(
             controller: pdfNameTEController,
-            decoration: const InputDecoration(hintText: 'Type PDF file name...'),
+            decoration:
+                const InputDecoration(hintText: 'Type PDF file name...'),
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); 
+                Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                pdfName = pdfNameTEController.text;
+                setState(() {
+                  _creatingPdfFile = !_creatingPdfFile;
+                  _creatingPdfFile ? const CircularProgressIndicator() : null;
+                });
+
+                pdfName = '${pdfNameTEController.text}.pdf';
 
                 Navigator.of(context).pop();
-                _createPDF(); 
+                _createPDF();
+                setState(() {
+                  _creatingPdfFile = !_creatingPdfFile;
+                });
               },
               child: const Text('OK'),
             ),
