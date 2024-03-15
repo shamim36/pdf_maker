@@ -357,7 +357,7 @@ class _DashBoardState extends State<DashBoard> {
       },
       validator: (String? value) {
         if (value?.trim().isEmpty ?? true) {
-          return 'Enter Your $name';
+          return 'Enter $name';
         } else {
           return null;
         }
@@ -536,7 +536,7 @@ class _DashBoardState extends State<DashBoard> {
     List<int> bytes = document.saveSync();
     document.dispose();
 
-    saveAndLaunchFile(bytes, pdfNameTEController.text);
+    saveAndLaunchFile(bytes, pdfName!);
 
     setState(() {
       isGeneratingPDF = false;
